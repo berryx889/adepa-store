@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  name        String
+  slug        String           @unique
+  description String
+  price       Int // pesewas
+  categoryId  String
+  category    Category         @relation(fields: [categoryId], references: [id])
+  images      String[]
+  stock       Int              @default(0)
+  isActive    Boolean          @default(true)
+  isFeatured  Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  variants    ProductVariant[]
+  orderItems  OrderItem[]
+
+  @@index([categoryId])
+  @@index([isActive, isFeatured])
+}
+
+model ProductVariant {
+  id            String      @id @default(cuid())
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name          String // e.g. "Size L" or "500ml"
+  stockOverride Int?
+  orderItems    OrderItem[]
+
+  @@index([productId])
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String
+  slug     String    @unique
+  products Product[]
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  orderNumber       String        @unique // e.g. ORD-2026-0042
+  customerName      String
+  phone             String // normalized +233XXXXXXXXX
+  address           String
+  deliveryZoneId    String
+  deliveryZone      DeliveryZone  @relation(fields: [deliveryZoneId], references: [id])
+  deliveryFee       Int // pesewas
+  subtotal          Int // pesewas
+  total             Int // pesewas
+  note              String?
+  status            OrderStatus   @default(PENDING)
+  paymentStatus     PaymentStatus @default(UNPAID)
+  paystackReference String?       @unique
+  stockDecremented  Boolean       @default(false) // webhook idempotency guard
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  items             OrderItem[]
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([phone])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id            String          @id @default(cuid())
+  orderId       String
+  order         Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product         @relation(fields: [productId], references: [id])
+  variantId     String?
+  variant       ProductVariant? @relation(fields: [variantId], references: [id])
+  nameSnapshot  String
+  priceSnapshot Int // pesewas at time of order
+  quantity      Int
+
+  @@index([orderId])
+}
+
+model DeliveryZone {
+  id     String  @id @default(cuid())
+  name   String
+  fee    Int // pesewas
+  orders Order[]
+}
+
+model AdminUser {
+  id           String @id @default(cuid())
+  email        String @unique
+  passwordHash String
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model NotificationLog {
+  id        String   @id @default(cuid())
+  phone     String
+  message   String
+  status    String // sent | failed
+  error     String?
+  createdAt DateTime @default(now())
+}
