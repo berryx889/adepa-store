@@ -3,19 +3,19 @@
 import sharp from "sharp";
 import { mkdir } from "fs/promises";
 
-const GOLD = "#D4A017";
-const GOLD_DIM = "#A16207";
+const GOLD = "#E4A56B"; // warm cream-terracotta line art
+const GOLD_DIM = "#B4451B"; // terracotta detail
 
 const bg = (id) => `
   <defs>
     <linearGradient id="g${id}" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#292524"/>
-      <stop offset="0.55" stop-color="#1C1917"/>
-      <stop offset="1" stop-color="#0C0A09"/>
+      <stop offset="0" stop-color="#3A2113"/>
+      <stop offset="0.55" stop-color="#241610"/>
+      <stop offset="1" stop-color="#160C07"/>
     </linearGradient>
     <radialGradient id="glow${id}" cx="0.5" cy="0.35" r="0.7">
-      <stop offset="0" stop-color="${GOLD}" stop-opacity="0.14"/>
-      <stop offset="1" stop-color="${GOLD}" stop-opacity="0"/>
+      <stop offset="0" stop-color="#B4451B" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#B4451B" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="1200" height="1200" fill="url(#g${id})"/>
@@ -78,13 +78,13 @@ const heroSvg = `
 <svg width="2000" height="1200" viewBox="0 0 2000 1200" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#292524"/>
-      <stop offset="0.5" stop-color="#1C1917"/>
-      <stop offset="1" stop-color="#0C0A09"/>
+      <stop offset="0" stop-color="#3A2113"/>
+      <stop offset="0.5" stop-color="#241610"/>
+      <stop offset="1" stop-color="#160C07"/>
     </linearGradient>
     <radialGradient id="hglow" cx="0.7" cy="0.4" r="0.8">
-      <stop offset="0" stop-color="${GOLD}" stop-opacity="0.16"/>
-      <stop offset="1" stop-color="${GOLD}" stop-opacity="0"/>
+      <stop offset="0" stop-color="#B4451B" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="#B4451B" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <rect width="2000" height="1200" fill="url(#hg)"/>
