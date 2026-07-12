@@ -33,17 +33,33 @@ Admin panel: `/admin` — credentials come from `ADMIN_EMAIL` / `ADMIN_PASSWORD`
 
 See `.env.example`. Notes:
 
-- `DATABASE_URL` — use Neon's **pooled** connection string in production.
+- `DATABASE_URL` — **pooled** connection used at runtime (Supabase transaction pooler on port 6543 with `?pgbouncer=true`; or Neon pooled). Serverless functions exhaust direct connections.
+- `DIRECT_URL` — **direct** connection used only by `prisma migrate` (Supabase/Neon port 5432). Poolers can't run migrations. For local Postgres, set it to the same value as `DATABASE_URL`.
 - `AUTH_SECRET` — generate with `openssl rand -base64 32`.
 - `NEXT_PUBLIC_APP_URL` — the deployed URL; used for the Paystack callback.
+
+### Database (Supabase)
+
+Create a new Supabase project (separate from any other app), then in
+**Project Settings → Database → Connection string** copy both:
+
+- **Transaction pooler** (port 6543) → `DATABASE_URL`, append `?pgbouncer=true`
+- **Direct connection** / **Session pooler** (port 5432) → `DIRECT_URL`
+
+Then run migrations + seed once against it:
+
+```bash
+npx prisma migrate deploy
+npx prisma db seed
+```
 
 ## Deploying to Vercel
 
 1. Push to GitHub (`.env` is gitignored — never commit it).
 2. Import the repo in Vercel; Next.js is auto-detected.
-3. Add every variable from `.env.example` in Project Settings → Environment Variables.
-4. Set `DATABASE_URL` to the Neon **pooled** string (serverless exhausts direct connections).
-5. Run migrations against Neon: `DATABASE_URL=<neon-direct-url> npx prisma migrate deploy`, then seed once.
+3. Add every variable from `.env.example` in Project Settings → Environment Variables (including `DIRECT_URL`).
+4. `DATABASE_URL` = pooled string, `DIRECT_URL` = direct string (see above).
+5. Migrate + seed the Supabase database once (commands above), from your machine.
 6. In the Paystack dashboard (test mode), register the webhook: `https://<project>.vercel.app/api/webhooks/paystack`.
 7. Test with Paystack test cards / test MoMo numbers on the `*.vercel.app` URL.
 8. Domain + live Paystack keys only after client sign-off.
