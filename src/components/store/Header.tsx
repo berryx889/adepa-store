@@ -30,39 +30,35 @@ export function Header({ shopName }: { shopName: string }) {
 
   useEffect(() => setMobileOpen(false), [pathname]);
 
-  const dark = pathname === "/" && !scrolled && !mobileOpen;
-
   return (
     <>
       <header
         className={cn(
-          "fixed top-0 inset-x-0 z-40 transition-all duration-300",
-          dark
-            ? "bg-transparent text-on-primary"
-            : "bg-background/85 backdrop-blur-md text-foreground shadow-sm"
+          "fixed top-0 inset-x-0 z-40 text-foreground transition-all duration-300",
+          scrolled || mobileOpen
+            ? "bg-background/80 backdrop-blur-md border-b border-border/70"
+            : "bg-transparent"
         )}
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 flex items-center justify-between h-16">
           <Link
             href="/"
-            className="font-display text-2xl font-semibold tracking-wide cursor-pointer"
+            className="font-display text-2xl tracking-tight cursor-pointer"
             aria-label={`${shopName} home`}
           >
             {shopName}
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8" aria-label="Main">
+          <nav className="hidden md:flex items-center gap-9" aria-label="Main">
             {NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "text-sm font-medium transition-colors duration-200 cursor-pointer",
+                  "text-sm transition-colors duration-200 cursor-pointer",
                   pathname === item.href
-                    ? "text-accent-light"
-                    : dark
-                      ? "hover:text-accent-light"
-                      : "hover:text-accent"
+                    ? "text-accent"
+                    : "text-foreground/80 hover:text-foreground"
                 )}
                 aria-current={pathname === item.href ? "page" : undefined}
               >
