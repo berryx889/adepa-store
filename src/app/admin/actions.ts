@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin";
@@ -320,5 +321,34 @@ export async function saveSettings(
     });
   }
   revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/* ---------------- Admin password ---------------- */
+
+export async function changeAdminPassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<ActionResult> {
+  const session = await requireAdmin();
+  const email = session.user?.email;
+  if (!email) return { ok: false, error: "Your session has expired — sign in again" };
+
+  if (typeof newPassword !== "string" || newPassword.length < 8) {
+    return { ok: false, error: "New password must be at least 8 characters" };
+  }
+
+  const admin = await prisma.adminUser.findUnique({ where: { email } });
+  if (!admin) return { ok: false, error: "Account not found" };
+
+  const valid = await bcrypt.compare(currentPassword, admin.passwordHash);
+  if (!valid) return { ok: false, error: "Your current password is incorrect" };
+
+  if (await bcrypt.compare(newPassword, admin.passwordHash)) {
+    return { ok: false, error: "New password must be different from the current one" };
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.adminUser.update({ where: { id: admin.id }, data: { passwordHash } });
   return { ok: true };
 }
